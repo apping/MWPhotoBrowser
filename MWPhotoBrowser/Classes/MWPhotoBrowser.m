@@ -476,10 +476,7 @@
         navBar.shadowImage = nil;
     }
     navBar.barStyle = UIBarStyleBlackTranslucent;
-    if ([[UINavigationBar class] respondsToSelector:@selector(appearance)]) {
-        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
-    }
+
 }
 
 - (void)storePreviousNavBarAppearance {
