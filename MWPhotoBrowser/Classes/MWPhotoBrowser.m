@@ -178,9 +178,7 @@
     _photos = [[NSMutableArray alloc] init];
     
     _didSavePreviousStateOfNavBar = NO;
-    if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)]){
-        self.automaticallyAdjustsScrollViewInsets = NO;
-    }
+    self.automaticallyAdjustsScrollViewInsets = NO;
     
     // Listen for MWPhoto notifications
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -246,8 +244,8 @@
     _toolbar = [[UIToolbar alloc] initWithFrame:[self frameForToolbarAtOrientation:self.interfaceOrientation]];
     _toolbar.tintColor = SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7") ? [UIColor whiteColor] : nil;
     if ([[UIToolbar class] respondsToSelector:@selector(appearance)]) {
-        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
-        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsLandscapePhone];
+//        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
+//        [_toolbar setBackgroundImage:nil forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsLandscapePhone];
     }
     _toolbar.barStyle = UIBarStyleBlackTranslucent;
     _toolbar.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
@@ -408,10 +406,9 @@
     } else {
         _leaveStatusBarAlone = [UIApplication sharedApplication].statusBarHidden;
     }
-//    if (!_leaveStatusBarAlone && self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-//        _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
-//        [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:animated];
-//    }
+
+//    _previousStatusBarStyle = [[UIApplication sharedApplication] statusBarStyle];
+//    [[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:animated];
     
     // Navigation bar appearance
     if (!_viewIsActive && [self.navigationController.viewControllers objectAtIndex:0] != self) {
@@ -448,9 +445,7 @@
     [self setControlsHidden:NO animated:NO permanent:YES];
     
     // Status bar
-//    if (!_leaveStatusBarAlone && self.wantsFullScreenLayout && UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
-//        [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
-//    }
+//    [[UIApplication sharedApplication] setStatusBarStyle:_previousStatusBarStyle animated:animated];
     
     // Show navigation controller's toolbar
     [self.navigationController setToolbarHidden:_previousNavToolbarHidden];
@@ -475,11 +470,12 @@
         navBar.barTintColor = nil;
         navBar.shadowImage = nil;
     }
-    navBar.barStyle = UIBarStyleBlackTranslucent;
-    if ([[UINavigationBar class] respondsToSelector:@selector(appearance)]) {
-        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
-        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
-    }
+    [navBar setTranslucent:YES];
+    [navBar setBarStyle:UIBarStyleDefault];
+//    if ([[UINavigationBar class] respondsToSelector:@selector(appearance)]) {
+//        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsDefault];
+//        [navBar setBackgroundImage:nil forBarMetrics:UIBarMetricsLandscapePhone];
+//    }
 }
 
 - (void)storePreviousNavBarAppearance {
@@ -505,10 +501,10 @@
             navBar.barTintColor = _previousNavBarBarTintColor;
         }
         navBar.barStyle = _previousNavBarStyle;
-        if ([[UINavigationBar class] respondsToSelector:@selector(appearance)]) {
-            [navBar setBackgroundImage:_previousNavigationBarBackgroundImageDefault forBarMetrics:UIBarMetricsDefault];
-            [navBar setBackgroundImage:_previousNavigationBarBackgroundImageLandscapePhone forBarMetrics:UIBarMetricsLandscapePhone];
-        }
+//        if ([[UINavigationBar class] respondsToSelector:@selector(appearance)]) {
+//            [navBar setBackgroundImage:_previousNavigationBarBackgroundImageDefault forBarMetrics:UIBarMetricsDefault];
+//            [navBar setBackgroundImage:_previousNavigationBarBackgroundImageLandscapePhone forBarMetrics:UIBarMetricsLandscapePhone];
+//        }
         // Restore back button if we need to
         if (_previousViewControllerBackButton) {
             UIViewController *previousViewController = [self.navigationController topViewController]; // We've disappeared so previous is now top
@@ -1057,33 +1053,26 @@
 
         } else {
             
-            // Status bar and nav bar positioning
-//            if (self.wantsFullScreenLayout) {
-//                
-//                // Need to get heights and set nav bar position to overcome display issues
-//                
-//                // Get status bar height if visible
-//                CGFloat statusBarHeight = 0;
-//                if (![UIApplication sharedApplication].statusBarHidden) {
-//                    CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
-//                    statusBarHeight = MIN(statusBarFrame.size.height, statusBarFrame.size.width);
-//                }
-//                
-//                // Status Bar
-//                [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animated?UIStatusBarAnimationFade:UIStatusBarAnimationNone];
-//                
-//                // Get status bar height if visible
-//                if (![UIApplication sharedApplication].statusBarHidden) {
-//                    CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
-//                    statusBarHeight = MIN(statusBarFrame.size.height, statusBarFrame.size.width);
-//                }
-//                
-//                // Set navigation bar frame
-//                CGRect navBarFrame = self.navigationController.navigationBar.frame;
-//                navBarFrame.origin.y = statusBarHeight;
-//                self.navigationController.navigationBar.frame = navBarFrame;
-//                
-//            }
+            // Get status bar height if visible
+            CGFloat statusBarHeight = 0;
+            if (![UIApplication sharedApplication].statusBarHidden) {
+                CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
+                statusBarHeight = MIN(statusBarFrame.size.height, statusBarFrame.size.width);
+            }
+            
+            // Status Bar
+            [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:animated?UIStatusBarAnimationFade:UIStatusBarAnimationNone];
+            
+            // Get status bar height if visible
+            if (![UIApplication sharedApplication].statusBarHidden) {
+                CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
+                statusBarHeight = MIN(statusBarFrame.size.height, statusBarFrame.size.width);
+            }
+            
+            // Set navigation bar frame
+            CGRect navBarFrame = self.navigationController.navigationBar.frame;
+            navBarFrame.origin.y = statusBarHeight;
+            self.navigationController.navigationBar.frame = navBarFrame;
             
         }
     }
@@ -1398,7 +1387,7 @@
         if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
             emailer.modalPresentationStyle = UIModalPresentationPageSheet;
         }
-        [self presentModalViewController:emailer animated:YES];
+        [self presentViewController:emailer animated:YES completion:nil];
         [self hideProgressHUD:NO];
     }
 }
