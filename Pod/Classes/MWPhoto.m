@@ -9,7 +9,6 @@
 #import <SDWebImage/SDWebImageDecoder.h>
 #import <SDWebImage/SDWebImageManager.h>
 #import <SDWebImage/SDWebImageOperation.h>
-#import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
 
@@ -261,21 +260,40 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         @autoreleasepool {
             @try {
-                ALAssetsLibrary *assetslibrary = [[ALAssetsLibrary alloc] init];
-                [assetslibrary assetForURL:url
-                               resultBlock:^(ALAsset *asset){
-                                   ALAssetRepresentation *rep = [asset defaultRepresentation];
-                                   CGImageRef iref = [rep fullScreenImage];
-                                   if (iref) {
-                                       self.underlyingImage = [UIImage imageWithCGImage:iref];
-                                   }
-                                   [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
-                               }
-                              failureBlock:^(NSError *error) {
-                                  self.underlyingImage = nil;
-                                  MWLog(@"Photo from asset library error: %@",error);
-                                  [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
-                              }];
+                PHImageRequestOptions *imageRequestsOptions = [[PHImageRequestOptions alloc] init];
+                imageRequestsOptions.version = PHImageRequestOptionsVersionCurrent;
+                imageRequestsOptions.deliveryMode = PHImageRequestOptionsDeliveryModeFastFormat;
+                imageRequestsOptions.resizeMode = PHImageRequestOptionsResizeModeFast;
+                imageRequestsOptions.synchronous = true;
+                
+                __block BOOL found = false;
+                PHImageManager *imageManager = [PHImageManager defaultManager];
+                PHFetchResult<PHAsset *> *fetchResultAsset = [PHAsset fetchAssetsWithOptions:imageRequestsOptions];
+                for (PHAsset *fetchedAsset in fetchResultAsset) {
+                    
+                    [imageManager requestImageDataForAsset:fetchedAsset options:imageRequestsOptions resultHandler:^(NSData * _Nullable imageData, NSString * _Nullable dataUTI, UIImageOrientation orientation, NSDictionary * _Nullable info) {
+                        NSURL *urlKey = (NSURL *)info[@"PHImageFileURLKey"];
+                        if (urlKey) {
+                            if ([urlKey.absoluteString isEqualToString:url.absoluteString]) {
+                                found = true;
+                                self.underlyingImage = [UIImage imageWithData:imageData];
+                            }
+                        }
+                    }];
+                    
+                    if (found) {
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+                }
+                else {
+                    self.underlyingImage = nil;
+                    MWLog(@"Could not find photo from photo library with url: %@", url);
+                    [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
+                }
             } @catch (NSException *e) {
                 MWLog(@"Photo from asset library error: %@", e);
                 [self performSelectorOnMainThread:@selector(imageLoadingComplete) withObject:nil waitUntilDone:NO];
